@@ -1,4 +1,3 @@
-# __init__.py
 # -*- coding: utf-8 -*-
 """
 ZhiYu_LabelKit - ComfyUI 自定义节点包
@@ -10,21 +9,21 @@ ZhiYu_LabelKit - ComfyUI 自定义节点包
 - 保存标签到 TXT
 """
 
-from .batch_image_loader import BatchImageLoader
-from .get_image_name import GetImageName
-from .format_converter import FormatConverter
-from .save_label_to_txt import SaveLabelToTxt
+from .batch_image_loader import BatchImageLoaderNode
+from .get_image_name import GetImageNameNode
+from .format_converter import FormatConverterNode
+from .save_label_to_txt import SaveLabelToTxtNode
 
 NODE_CLASS_MAPPINGS = {
-    "BatchImageLoader": BatchImageLoader,
-    "GetImageName": GetImageName,
-    "FormatConverter": FormatConverter,
-    "SaveLabelToTxt": SaveLabelToTxt,
+    "BatchImageLoaderNode": BatchImageLoaderNode,
+    "GetImageNameNode": GetImageNameNode,
+    "FormatConverterNode": FormatConverterNode,
+    "SaveLabelToTxtNode": SaveLabelToTxtNode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "BatchImageLoader": "批量加载图片",
-    "GetImageName": "获取图片名称",
-    "FormatConverter": "格式转换",
-    "SaveLabelToTxt": "保存标签到TXT",
+    "BatchImageLoaderNode": "批量加载图片",
+    "GetImageNameNode": "获取图片名称",
+    "FormatConverterNode": "格式转换",
+    "SaveLabelToTxtNode": "保存标签到TXT",
 }
