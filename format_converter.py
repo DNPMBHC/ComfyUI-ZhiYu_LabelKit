@@ -9,13 +9,14 @@ import os
 
 class FormatConverterNode(nodes.Node):
     """
-    将路径/字符串/列表进行互相转换，方便节点对接
+    将路径 / 字符串 / 列表进行互相转换，方便节点对接
     """
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "input_data": ("ANY",),  # 接收任意类型输入
+                "input_data": ("ANY",),  # 支持任意类型输入
                 "output_type": (
                     ["STRING", "LIST", "PATH"],
                     {"default": "LIST"},
@@ -56,9 +57,10 @@ class FormatConverterNode(nodes.Node):
         else:
             items = [str(input_data)]
 
-        # 转换输出
+        # 输出端口处理
         as_string = "; ".join(items)
         as_list = items
+        # PATH 输出仅在指定 output_type 为 PATH 时返回，否则为空列表
         as_path = items if output_type == "PATH" else []
 
         return as_string, as_list, as_path
