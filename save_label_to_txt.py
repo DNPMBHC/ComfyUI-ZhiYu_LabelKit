@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import os
 import traceback
 
@@ -10,6 +9,7 @@ except Exception:
 
 
 def _to_list(x):
+    """把输入转换为列表"""
     if x is None:
         return []
     if isinstance(x, (list, tuple)):
@@ -24,6 +24,7 @@ def _to_list(x):
 
 
 def _strip_annotation(s):
+    """去掉注记 [output] 等"""
     if not s:
         return s
     s = str(s)
@@ -33,12 +34,13 @@ def _strip_annotation(s):
 
 
 def _resolve_path(item, strip_annotation=True):
+    """解析路径，支持 folder_paths 注记"""
     if not item:
         return None
     s = str(item).strip()
     if strip_annotation:
         s = _strip_annotation(s)
-    if os.path.isabs(s):
+    if os.path.isabs(s) and os.path.exists(s):
         return os.path.abspath(s)
     if os.path.exists(s):
         return os.path.abspath(s)
@@ -52,23 +54,8 @@ def _resolve_path(item, strip_annotation=True):
     return os.path.abspath(s)
 
 
-def _build_txt_from_components(image_path=None, image_name=None, output_dir=None, strip_annotation=True):
-    if image_path:
-        p = _resolve_path(image_path, strip_annotation=strip_annotation)
-        if p:
-            base = os.path.splitext(os.path.basename(p))[0]
-            if base:
-                return os.path.join(os.path.dirname(p), base + ".txt")
-    if image_name:
-        name = _strip_annotation(image_name) if strip_annotation else image_name
-        base = os.path.splitext(os.path.basename(name))[0]
-        if base:
-            out = output_dir or os.getcwd()
-            return os.path.join(os.path.abspath(out), base + ".txt")
-    return None
-
-
 def _write_text(path, text, append=False):
+    """写入文本文件"""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     mode = 'a' if append else 'w'
     with open(path, mode, encoding='utf-8') as f:
@@ -79,7 +66,7 @@ def _write_text(path, text, append=False):
 
 class SaveLabelToTxtNode:
     """
-    保存标签到 TXT 节点
+    保存标签到 TXT 文件节点
     """
     @classmethod
     def INPUT_TYPES(cls):
@@ -98,9 +85,10 @@ class SaveLabelToTxtNode:
     RETURN_NAMES = ("txt_paths",)
     FUNCTION = "save"
     CATEGORY = "ZhiYu/工具箱"
-    NODE_DISPLAY_NAME = "保存文本到本地路径"
+    NODE_DISPLAY_NAME = "保存标签到TXT"
 
     def save(self, file_list, label_text, output_dir="", append=False, auto_write=True, strip_annotation=True):
+        """保存文本到目标路径"""
         targets = []
 
         # 解析 file_list
@@ -110,26 +98,23 @@ class SaveLabelToTxtNode:
                 if resolved:
                     targets.append(resolved)
 
-        # 没有解析到路径则返回空
         if not targets:
             return ("",)
 
-        # 自动写入文本
+        # 自动写入
         if auto_write and label_text.strip():
             written = []
             for tgt in targets:
                 try:
-                    # 如果 tgt 是图片路径，生成同名 txt
                     ext = os.path.splitext(tgt)[1].lower()
                     if ext in ['.png', '.jpg', '.jpeg', '.bmp', '.webp', '.tiff']:
                         folder = os.path.dirname(tgt)
                         base = os.path.splitext(os.path.basename(tgt))[0]
                         txt_path = os.path.join(folder, base + ".txt")
                     else:
-                        # 可能已经是 txt 路径或由文件名生成
                         txt_path = tgt if tgt.lower().endswith('.txt') else tgt + ".txt"
 
-                    # 支持指定输出目录
+                    # 输出到指定目录
                     if output_dir:
                         base = os.path.splitext(os.path.basename(txt_path))[0]
                         txt_path = os.path.join(os.path.abspath(output_dir), base + ".txt")
@@ -145,7 +130,6 @@ class SaveLabelToTxtNode:
                 return ("",)
             return (";".join(written),)
         else:
-            # 返回解析路径，不写入
             return (";".join(targets),)
 
 
