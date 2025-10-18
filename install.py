@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Minimal installer invoked by ComfyUI-Manager.
-只尝试安装 requirements.txt（如果存在），不做额外操作。
-"""
 
 import subprocess
 import sys
