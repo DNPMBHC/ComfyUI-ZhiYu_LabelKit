@@ -1,4 +1,9 @@
-# batch_image_loader.py
+# -*- coding: utf-8 -*-
+"""
+ComfyUI 自定义节点：批量加载图片
+路径：ZhiYu/工具箱/batch_image_loader.py
+"""
+
 import os
 import glob
 import traceback
@@ -7,6 +12,7 @@ try:
     import folder_paths
 except Exception:
     folder_paths = None
+
 
 def _to_list(x):
     if x is None:
@@ -21,11 +27,13 @@ def _to_list(x):
             return [p.strip() for p in s.split(sep) if p.strip()]
     return [s]
 
+
 def _strip_annotation(s):
     s = str(s)
     if '[' in s and ']' in s:
         return s.split('[')[0].strip()
     return s
+
 
 def _annotated_to_path(s):
     if not folder_paths:
@@ -38,6 +46,7 @@ def _annotated_to_path(s):
         return None
     return None
 
+
 def _resolve_path_candidate(item, strip_annotation=True):
     if not item:
         return None
@@ -49,19 +58,21 @@ def _resolve_path_candidate(item, strip_annotation=True):
     if os.path.exists(s):
         return os.path.abspath(s)
     annotated = _annotated_to_path(s)
-    if annotated and os.path.exists(annotated):
-        return annotated
     if annotated:
-        return annotated
+        return os.path.abspath(annotated)
     return os.path.abspath(s)
 
-class BatchImageLoader:
+
+class BatchImageLoaderNode:
+    """
+    批量加载图片节点
+    """
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
                 "folder": ("STRING", {"default": ""}),
-                "paths": ("STRING", {"default": ""}),
+                "paths": ("ANY", {"default": ""}),  # 支持 PATH / STRING / LIST
                 "pattern": ("STRING", {"default": "*.png;*.jpg;*.jpeg"}),
                 "recursive": ("BOOLEAN", {"default": False}),
                 "strip_annotation": ("BOOLEAN", {"default": True}),
@@ -69,11 +80,11 @@ class BatchImageLoader:
             }
         }
 
-    # 返回三路：路径字符串、文件名字符串、以及 Python 列表
     RETURN_TYPES = ("STRING", "STRING", "LIST")
     RETURN_NAMES = ("file_paths", "file_names", "file_list")
-    CATEGORY = "ZhiYu/Loader"
     FUNCTION = "load"
+    CATEGORY = "ZhiYu/工具箱"
+    NODE_DISPLAY_NAME = "批量加载图片"
 
     def _glob_from_folder(self, folder, patterns, recursive=False):
         results = []
@@ -84,32 +95,28 @@ class BatchImageLoader:
             pat = pat.strip()
             if not pat:
                 continue
-            if recursive:
-                glob_path = os.path.join(folder, "**", pat)
-                found = glob.glob(glob_path, recursive=True)
-            else:
-                glob_path = os.path.join(folder, pat)
-                found = glob.glob(glob_path)
-            for f in found:
-                if os.path.isfile(f):
-                    results.append(os.path.abspath(f))
+            glob_path = os.path.join(folder, "**", pat) if recursive else os.path.join(folder, pat)
+            found = glob.glob(glob_path, recursive=recursive)
+            results.extend([os.path.abspath(f) for f in found if os.path.isfile(f)])
         return results
 
     def load(self, folder, paths, pattern="*.png;*.jpg;*.jpeg", recursive=False, strip_annotation=True, absolute=True):
         try:
             collected = []
 
-            if folder and str(folder).strip():
+            # 从文件夹加载
+            if folder and folder.strip():
                 pats = [p.strip() for p in str(pattern).split(';') if p.strip()]
                 collected.extend(self._glob_from_folder(folder, pats, recursive=recursive))
 
+            # 从 paths 加载
             path_items = _to_list(paths)
             for it in path_items:
                 resolved = _resolve_path_candidate(it, strip_annotation=strip_annotation)
                 if resolved:
                     collected.append(os.path.abspath(resolved) if absolute else resolved)
 
-            # 保持顺序去重
+            # 去重并保持顺序
             seen = set()
             unique = []
             for p in collected:
@@ -128,13 +135,15 @@ class BatchImageLoader:
             return (file_paths, file_names, file_list)
 
         except Exception as e:
-            print("[BatchImageLoader] error:", e)
+            print("[BatchImageLoader] 错误:", e)
             traceback.print_exc()
             return ("", "", [])
 
+
 NODE_CLASS_MAPPINGS = {
-    "BatchImageLoader": BatchImageLoader
+    "BatchImageLoaderNode": BatchImageLoaderNode
 }
+
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "BatchImageLoader": "批量加载图片"
+    "BatchImageLoaderNode": "批量加载图片"
 }
