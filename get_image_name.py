@@ -5,8 +5,13 @@ import os
 
 class GetImageNameNode(nodes.Node):
     """
-    获取图片名称
+    获取图片名称节点
+
+    功能：
+    - 支持输入 STRING / LIST / PATH
+    - 输出分号分隔的文件名字符串、列表形式文件名、以及原始路径列表
     """
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -23,12 +28,10 @@ class GetImageNameNode(nodes.Node):
 
     def get_names(self, input_paths):
         """
-        输入：
-            input_paths: STRING / LIST / PATH
-        输出：
-            as_string: 分号分隔的文件名
-            as_list: Python 列表形式的文件名
-            as_path: 路径列表，方便后续 PATH 类型节点使用
+        解析输入，生成三个输出端口：
+        1. as_string: 分号分隔的文件名字符串
+        2. as_list: Python 列表形式的文件名
+        3. as_path: 路径列表，方便后续 PATH 类型节点使用
         """
         # 规范化输入为列表
         if input_paths is None:
