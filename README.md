@@ -7,8 +7,8 @@
 
 ## 节点路径
 
-| 节点文件 | 类名 | 功能 |
-|-----------|------|------|
+| 节点搜索地址 | 类名 | 功能 |
+|--------------|------|------|
 | `ZhiYu/工具箱/batch_image_loader.py` | `BatchImageLoaderNode` | 批量加载图片 |
 | `ZhiYu/工具箱/save_label_to_txt.py` | `SaveLabelToTxtNode` | 保存标签到 TXT 文件 |
 | `ZhiYu/工具箱/get_image_name.py` | `GetImageNameNode` | 获取图片名称 |
