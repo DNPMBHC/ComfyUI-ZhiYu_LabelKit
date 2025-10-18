@@ -2,26 +2,27 @@
 """
 ComfyUI 自定义节点：获取图片名称
 节点分类：ZhiYu/工具箱
+功能：把 PATH/STRING/LIST 规范化并输出文件名（字符串/列表/路径）
 """
 
 from modules import nodes
 import os
 
-
 class GetImageNameNode(nodes.Node):
     """
     获取图片名称节点
-
-    功能：
-    - 支持输入 STRING / LIST / PATH
-    - 输出分号分隔的文件名字符串、列表形式文件名、以及原始路径列表
+    Inputs:
+        input_paths (ANY) - PATH/STRING/LIST
+    Returns:
+        as_string (STRING) - 文件名分号分隔
+        as_list (LIST) - 文件名列表
+        as_path (PATH) - 路径列表（LIST）用于连接 PATH 插口
     """
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "input_paths": ("ANY",),  # 支持 PATH / STRING / LIST
+                "input_paths": ("ANY",),
             }
         }
 
@@ -32,16 +33,13 @@ class GetImageNameNode(nodes.Node):
     NODE_DISPLAY_NAME = "获取图片名称"
 
     def get_names(self, input_paths):
-        """解析输入，生成三个输出端口"""
-        # 规范化输入为列表
+        # 规范化为列表并过滤空值
         if input_paths is None:
             paths = []
         elif isinstance(input_paths, list):
             paths = [str(p) for p in input_paths if p]
         elif isinstance(input_paths, str):
-            # 支持 ; , | 分隔
-            separators = [";", ",", "|"]
-            for sep in separators:
+            for sep in [";", ",", "|"]:
                 if sep in input_paths:
                     paths = [p.strip() for p in input_paths.split(sep) if p.strip()]
                     break
@@ -50,21 +48,15 @@ class GetImageNameNode(nodes.Node):
         else:
             paths = [str(input_paths)]
 
-        # 获取文件名
         names = [os.path.basename(p) for p in paths]
-
-        # 输出三个端口
         as_string = "; ".join(names)
         as_list = names
         as_path = paths
-
-        return as_string, as_list, as_path
-
+        return (as_string, as_list, as_path)
 
 NODE_CLASS_MAPPINGS = {
     "GetImageNameNode": GetImageNameNode
 }
-
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GetImageNameNode": "获取图片名称"
 }
