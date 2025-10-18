@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 ComfyUI 自定义节点：格式转换节点
-统一转换 PATH / STRING / LIST 格式
+节点分类：ZhiYu/工具箱
+功能：统一转换 PATH / STRING / LIST 格式
 """
 
 from modules import nodes
 import os
+
 
 class FormatConverterNode(nodes.Node):
     """
@@ -38,15 +40,14 @@ class FormatConverterNode(nodes.Node):
         输出：
             as_string: 分号分隔字符串
             as_list: Python 列表
-            as_path: 单路径或列表（LIST）可直接接 PATH 类型端口
+            as_path: 列表形式的路径，仅在 output_type 为 PATH 时返回
         """
         # 规范化输入为列表
         if input_data is None:
             items = []
         elif isinstance(input_data, list):
-            items = input_data
+            items = [str(i) for i in input_data if i]
         elif isinstance(input_data, str):
-            # 支持 ; , | 分隔
             separators = [";", ",", "|"]
             for sep in separators:
                 if sep in input_data:
@@ -57,10 +58,18 @@ class FormatConverterNode(nodes.Node):
         else:
             items = [str(input_data)]
 
-        # 输出端口处理
+        # 输出端口
         as_string = "; ".join(items)
         as_list = items
-        # PATH 输出仅在指定 output_type 为 PATH 时返回，否则为空列表
-        as_path = items if output_type == "PATH" else []
+        as_path = [os.path.abspath(i) for i in items] if output_type == "PATH" else []
 
         return as_string, as_list, as_path
+
+
+NODE_CLASS_MAPPINGS = {
+    "FormatConverterNode": FormatConverterNode
+}
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "FormatConverterNode": "格式转换"
+}
