@@ -50,9 +50,9 @@ def _basename_no_ext(path_or_name: str) -> str:
     except Exception:
         return str(path_or_name)
 
-class GetImageNameSimple:
+class GetImageNameNode:
     """
-    单输入单输出节点
+    单输入单输出节点（对外使用的类名：GetImageNameNode）
     INPUT: input (STRING) - 路径字符串或文件名或分隔的多路径（也支持 list/tuple）
     OUTPUT: text (STRING) - 每行一个文件名（不含扩展名）
     """
@@ -95,9 +95,10 @@ class GetImageNameSimple:
         out_text = "\n".join(unique)
         return (out_text,)
 
+# 导出给 ComfyUI 的映射（保持与 __init__.py 对应）
 NODE_CLASS_MAPPINGS = {
-    "GetImageNameSimple": GetImageNameSimple
+    "GetImageNameNode": GetImageNameNode
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "GetImageNameSimple": "获取图片名称 -> 文本"
+    "GetImageNameNode": "获取图片名称 -> 文本"
 }
