@@ -1,53 +1,43 @@
 # -*- coding: utf-8 -*-
 """
-ComfyUI 自定义节点：格式转换（STRING / LIST / PATH）
-节点分类：ZhiYu/工具箱
+格式转换节点（ZhiYu/工具箱）
 """
 
-from modules import nodes
 import os
 
-class FormatConverterNode(nodes.Node):
-    """
-    输入：
-        input_data (ANY) - STRING/LIST/PATH
-        output_type (ENUM) - "STRING" / "LIST" / "PATH"
-    输出：
-        as_string, as_list, as_path
-    """
+class FormatConverterNode:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "input_data": ("ANY",),
+                "input_data": ("STRING", {"default": ""}),
                 "output_type": (["STRING", "LIST", "PATH"], {"default": "LIST"}),
             }
         }
 
-    RETURN_TYPES = ("STRING", "LIST", "PATH")
+    RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("as_string", "as_list", "as_path")
     FUNCTION = "convert"
     CATEGORY = "ZhiYu/工具箱"
     NODE_DISPLAY_NAME = "格式转换"
 
-    def convert(self, input_data, output_type):
+    def _split_input(self, input_data):
         if input_data is None:
-            items = []
-        elif isinstance(input_data, list):
-            items = [str(i) for i in input_data if i]
-        elif isinstance(input_data, str):
-            for sep in [";", ",", "|"]:
-                if sep in input_data:
-                    items = [i.strip() for i in input_data.split(sep) if i.strip()]
-                    break
-            else:
-                items = [input_data.strip()]
-        else:
-            items = [str(input_data)]
+            return []
+        s = str(input_data).strip()
+        if not s:
+            return []
+        for sep in [";", ",", "|"]:
+            if sep in s:
+                return [p.strip() for p in s.split(sep) if p.strip()]
+        return [s]
 
-        as_string = "; ".join(items)
-        as_list = items
-        as_path = [os.path.abspath(i) for i in items] if output_type == "PATH" else []
+    def convert(self, input_data, output_type="LIST"):
+        items = self._split_input(input_data)
+        as_string = ";".join(items)
+        as_list = ";".join(items)     # 以 STRING 返回列表（分号拼接）
+        as_path = ";".join([os.path.abspath(i) for i in items]) if items else ""
+        # 如果用户希望 PATH 类型，下游可自行 split 并用 PATH 插口接入
         return (as_string, as_list, as_path)
 
 NODE_CLASS_MAPPINGS = {
