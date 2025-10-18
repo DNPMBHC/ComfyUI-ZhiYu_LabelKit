@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
+"""
+Minimal installer invoked by ComfyUI-Manager.
+只尝试安装 requirements.txt（如果存在），不做额外操作。
+"""
 
 import subprocess
 import sys
 import os
 
 def install_requirements():
-    """安装 requirements.txt 中列出的依赖"""
-    requirements_file = "requirements.txt"
-    if not os.path.exists(requirements_file):
-        print(f"[Install] 未找到 {requirements_file}，跳过依赖安装")
+    req = "requirements.txt"
+    if not os.path.exists(req):
+        print("[install] no requirements.txt found, skip.")
         return
-
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_file])
-        print("[Install] 依赖安装完成")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req])
+        print("[install] requirements installed.")
     except subprocess.CalledProcessError as e:
-        print("[Install] 依赖安装失败:", e)
-        print("[Install] 请手动检查网络或依赖名称")
+        print("[install] failed to install requirements:", e)
 
 if __name__ == "__main__":
     install_requirements()
