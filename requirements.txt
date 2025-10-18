@@ -1,1 +1,2 @@
-folder_paths
+# ComfyUI-ZhiYu_LabelKit 不依赖任何额外的 PyPI 包
+# 所有节点使用 Python 标准库
