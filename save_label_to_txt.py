@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-ComfyUI 自定义节点：保存标签到 TXT 文件
-节点分类：ZhiYu/工具箱
-说明：
-- 支持接收 PATH 列表或文件名列表
-- 默认在图片同目录生成同名 .txt（可用 output_dir 覆盖）
-- 支持覆盖或追加写入
-- 不依赖第三方 folder_paths 包（避免安装失败）
+保存标签到 TXT（ZhiYu/工具箱）
 """
 
-from modules import nodes
 import os
 import traceback
 
@@ -27,8 +20,6 @@ def _to_list(x):
     return [s]
 
 def _strip_annotation(s):
-    if not s:
-        return s
     s = str(s)
     if '[' in s and ']' in s:
         return s.split('[')[0].strip()
@@ -44,7 +35,7 @@ def _resolve_path(item, strip_annotation=True):
         return os.path.abspath(s)
     if os.path.exists(s):
         return os.path.abspath(s)
-    # 若路径不存在，则把它当作基名处理（后续会在 output_dir 中创建）
+    # 若不存在，则返回原始字符串（作为基名处理）
     return s
 
 def _write_text(path, text, append=False):
@@ -55,24 +46,12 @@ def _write_text(path, text, append=False):
         if not text.endswith('\n'):
             f.write('\n')
 
-class SaveLabelToTxtNode(nodes.Node):
-    """
-    保存标签到 TXT 文件节点
-    Inputs:
-        file_list (LIST) - 路径/文件名列表
-        label_text (STRING)
-        output_dir (STRING) - 覆盖输出目录，留空则放图片同目录
-        append (BOOLEAN)
-        auto_write (BOOLEAN)
-        strip_annotation (BOOLEAN)
-    Returns:
-        txt_paths (STRING) - 分号分隔的写入路径或解析路径
-    """
+class SaveLabelToTxtNode:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "file_list": ("LIST", {"default": []}),
+                "file_list": ("STRING", {"default": ""}),  # 分号分隔的路径或文件名
                 "label_text": ("STRING", {"default": ""}),
                 "output_dir": ("STRING", {"default": ""}),
                 "append": ("BOOLEAN", {"default": False}),
@@ -89,11 +68,11 @@ class SaveLabelToTxtNode(nodes.Node):
 
     def save(self, file_list, label_text, output_dir="", append=False, auto_write=True, strip_annotation=True):
         targets = []
-        for p in file_list:
+        for p in _to_list(file_list):
             if not p:
                 continue
-            p = _strip_annotation(str(p)) if strip_annotation else str(p)
-            resolved = _resolve_path(p, strip_annotation=False)
+            p2 = _strip_annotation(p) if strip_annotation else p
+            resolved = _resolve_path(p2, strip_annotation=False)
             if resolved:
                 targets.append(resolved)
 
@@ -104,19 +83,17 @@ class SaveLabelToTxtNode(nodes.Node):
             written = []
             for tgt in targets:
                 try:
-                    # 如果看起来像图片路径（有扩展名），生成同名 txt
-                    base_name = os.path.basename(tgt)
-                    name_no_ext, ext = os.path.splitext(base_name)
+                    base = os.path.basename(tgt)
+                    name_no_ext, ext = os.path.splitext(base)
                     if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp', '.webp', '.tiff']:
                         folder = os.path.dirname(tgt)
                         txt_path = os.path.join(folder, name_no_ext + ".txt")
                     else:
-                        # tgt 可能只是文件名或已是 txt 路径
                         txt_path = tgt if tgt.lower().endswith('.txt') else tgt + ".txt"
 
                     if output_dir and str(output_dir).strip():
-                        base = os.path.splitext(os.path.basename(txt_path))[0]
-                        txt_path = os.path.join(os.path.abspath(output_dir), base + ".txt")
+                        base2 = os.path.splitext(os.path.basename(txt_path))[0]
+                        txt_path = os.path.join(os.path.abspath(output_dir), base2 + ".txt")
 
                     _write_text(txt_path, str(label_text), append=append)
                     written.append(txt_path)
@@ -125,8 +102,6 @@ class SaveLabelToTxtNode(nodes.Node):
                     traceback.print_exc()
                     continue
 
-            if not written:
-                return ("",)
             return (";".join(written),)
         else:
             return (";".join(targets),)
