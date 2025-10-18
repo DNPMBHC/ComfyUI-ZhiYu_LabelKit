@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ComfyUI 自定义节点：批量加载图片
-路径：ZhiYu/工具箱/batch_image_loader.py
+节点分类：ZhiYu/工具箱
 """
 
 import os
@@ -37,39 +37,33 @@ def _strip_annotation(s):
     return s
 
 
-def _annotated_to_path(s):
-    """通过 folder_paths 获取注记路径"""
-    if not folder_paths:
-        return None
-    try:
-        p = folder_paths.get_annotated_filepath(s)
-        if p:
-            return os.path.abspath(p)
-    except Exception:
-        return None
-    return None
-
-
 def _resolve_path_candidate(item, strip_annotation=True):
-    """解析路径候选项，优先使用绝对路径和注记路径"""
+    """解析路径候选项，支持注记和绝对路径"""
     if not item:
         return None
     s = str(item).strip()
     if strip_annotation:
         s = _strip_annotation(s)
+    # 优先使用绝对路径
     if os.path.isabs(s) and os.path.exists(s):
         return os.path.abspath(s)
     if os.path.exists(s):
         return os.path.abspath(s)
-    annotated = _annotated_to_path(s)
-    if annotated:
-        return os.path.abspath(annotated)
+    # 尝试 folder_paths 注记解析
+    if folder_paths:
+        try:
+            annotated = folder_paths.get_annotated_filepath(s)
+            if annotated:
+                return os.path.abspath(annotated)
+        except Exception:
+            pass
     return os.path.abspath(s)
 
 
 class BatchImageLoaderNode:
     """
     批量加载图片节点
+
     输入：
         folder: 文件夹路径
         paths: PATH / STRING / LIST
@@ -77,11 +71,13 @@ class BatchImageLoaderNode:
         recursive: 是否递归子文件夹
         strip_annotation: 是否去除注记
         absolute: 是否返回绝对路径
+
     输出：
         file_paths: 分号分隔的文件路径
         file_names: 分号分隔的文件名
         file_list: Python 列表形式的路径
     """
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -122,16 +118,15 @@ class BatchImageLoaderNode:
             collected = []
 
             # 从文件夹加载
-            if folder and folder.strip():
-                pats = [p.strip() for p in str(pattern).split(';') if p.strip()]
+            if folder.strip():
+                pats = [p.strip() for p in pattern.split(';') if p.strip()]
                 collected.extend(self._glob_from_folder(folder, pats, recursive=recursive))
 
             # 从 paths 加载
-            path_items = _to_list(paths)
-            for it in path_items:
-                resolved = _resolve_path_candidate(it, strip_annotation=strip_annotation)
+            for item in _to_list(paths):
+                resolved = _resolve_path_candidate(item, strip_annotation=strip_annotation)
                 if resolved:
-                    collected.append(os.path.abspath(resolved) if absolute else resolved)
+                    collected.append(resolved if absolute else item)
 
             # 去重并保持顺序
             seen = set()
@@ -149,12 +144,12 @@ class BatchImageLoaderNode:
             file_names = ";".join([os.path.basename(p) for p in unique])
             file_list = unique
 
-            return (file_paths, file_names, file_list)
+            return file_paths, file_names, file_list
 
         except Exception as e:
             print("[BatchImageLoader] 错误:", e)
             traceback.print_exc()
-            return ("", "", [])
+            return "", "", []
 
 
 NODE_CLASS_MAPPINGS = {
