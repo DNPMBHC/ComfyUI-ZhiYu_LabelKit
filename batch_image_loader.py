@@ -15,6 +15,7 @@ except Exception:
 
 
 def _to_list(x):
+    """将输入规范化为列表"""
     if x is None:
         return []
     if isinstance(x, (list, tuple)):
@@ -29,6 +30,7 @@ def _to_list(x):
 
 
 def _strip_annotation(s):
+    """去掉注记字符，例如 'xxx[注记]' -> 'xxx'"""
     s = str(s)
     if '[' in s and ']' in s:
         return s.split('[')[0].strip()
@@ -36,6 +38,7 @@ def _strip_annotation(s):
 
 
 def _annotated_to_path(s):
+    """通过 folder_paths 获取注记路径"""
     if not folder_paths:
         return None
     try:
@@ -48,6 +51,7 @@ def _annotated_to_path(s):
 
 
 def _resolve_path_candidate(item, strip_annotation=True):
+    """解析路径候选项，优先使用绝对路径和注记路径"""
     if not item:
         return None
     s = str(item).strip()
@@ -66,13 +70,24 @@ def _resolve_path_candidate(item, strip_annotation=True):
 class BatchImageLoaderNode:
     """
     批量加载图片节点
+    输入：
+        folder: 文件夹路径
+        paths: PATH / STRING / LIST
+        pattern: 文件匹配模式，如 *.png;*.jpg
+        recursive: 是否递归子文件夹
+        strip_annotation: 是否去除注记
+        absolute: 是否返回绝对路径
+    输出：
+        file_paths: 分号分隔的文件路径
+        file_names: 分号分隔的文件名
+        file_list: Python 列表形式的路径
     """
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
                 "folder": ("STRING", {"default": ""}),
-                "paths": ("ANY", {"default": ""}),  # 支持 PATH / STRING / LIST
+                "paths": ("ANY", {"default": ""}),
                 "pattern": ("STRING", {"default": "*.png;*.jpg;*.jpeg"}),
                 "recursive": ("BOOLEAN", {"default": False}),
                 "strip_annotation": ("BOOLEAN", {"default": True}),
@@ -87,6 +102,7 @@ class BatchImageLoaderNode:
     NODE_DISPLAY_NAME = "批量加载图片"
 
     def _glob_from_folder(self, folder, patterns, recursive=False):
+        """根据匹配模式从文件夹获取文件列表"""
         results = []
         if not folder:
             return results
@@ -101,6 +117,7 @@ class BatchImageLoaderNode:
         return results
 
     def load(self, folder, paths, pattern="*.png;*.jpg;*.jpeg", recursive=False, strip_annotation=True, absolute=True):
+        """执行图片加载"""
         try:
             collected = []
 
