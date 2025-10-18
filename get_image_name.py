@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+ComfyUI 自定义节点：获取图片名称
+节点分类：ZhiYu/工具箱
+"""
 
 from modules import nodes
 import os
+
 
 class GetImageNameNode(nodes.Node):
     """
@@ -27,17 +32,12 @@ class GetImageNameNode(nodes.Node):
     NODE_DISPLAY_NAME = "获取图片名称"
 
     def get_names(self, input_paths):
-        """
-        解析输入，生成三个输出端口：
-        1. as_string: 分号分隔的文件名字符串
-        2. as_list: Python 列表形式的文件名
-        3. as_path: 路径列表，方便后续 PATH 类型节点使用
-        """
+        """解析输入，生成三个输出端口"""
         # 规范化输入为列表
         if input_paths is None:
             paths = []
         elif isinstance(input_paths, list):
-            paths = input_paths
+            paths = [str(p) for p in input_paths if p]
         elif isinstance(input_paths, str):
             # 支持 ; , | 分隔
             separators = [";", ",", "|"]
@@ -59,3 +59,12 @@ class GetImageNameNode(nodes.Node):
         as_path = paths
 
         return as_string, as_list, as_path
+
+
+NODE_CLASS_MAPPINGS = {
+    "GetImageNameNode": GetImageNameNode
+}
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "GetImageNameNode": "获取图片名称"
+}
