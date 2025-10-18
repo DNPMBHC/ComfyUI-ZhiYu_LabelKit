@@ -1,1 +1,1 @@
-# 没有额外第三方依赖，ComfyUI 自带 folder_paths
+folder_paths
