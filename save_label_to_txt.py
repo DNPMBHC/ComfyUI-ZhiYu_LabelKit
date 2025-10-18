@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
+"""
+ComfyUI 自定义节点：保存标签到 TXT 文件
+节点分类：ZhiYu/工具箱
+"""
+
+from modules import nodes
 import os
 import traceback
 
 try:
     import folder_paths
-except Exception:
+except ImportError:
     folder_paths = None
 
 
 def _to_list(x):
-    """把输入转换为列表"""
+    """将输入转换为列表"""
     if x is None:
         return []
     if isinstance(x, (list, tuple)):
@@ -64,7 +70,7 @@ def _write_text(path, text, append=False):
             f.write('\n')
 
 
-class SaveLabelToTxtNode:
+class SaveLabelToTxtNode(nodes.Node):
     """
     保存标签到 TXT 文件节点
     """
@@ -87,7 +93,15 @@ class SaveLabelToTxtNode:
     CATEGORY = "ZhiYu/工具箱"
     NODE_DISPLAY_NAME = "保存标签到TXT"
 
-    def save(self, file_list, label_text, output_dir="", append=False, auto_write=True, strip_annotation=True):
+    def save(
+        self,
+        file_list,
+        label_text,
+        output_dir="",
+        append=False,
+        auto_write=True,
+        strip_annotation=True,
+    ):
         """保存文本到目标路径"""
         targets = []
 
@@ -130,6 +144,7 @@ class SaveLabelToTxtNode:
                 return ("",)
             return (";".join(written),)
         else:
+            # 如果不写入，仅返回解析后的路径
             return (";".join(targets),)
 
 
