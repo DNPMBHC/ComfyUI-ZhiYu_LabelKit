@@ -1,16 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 批量加载图片节点（ZhiYu/工具箱）
-
-说明：
-- 支持 folder（文件夹）和 paths（多路径字符串或单一路径）两种输入方式
-- pattern 支持多个以分号分隔，例如 "*.png;*.jpg"
-- paths 支持分号/逗号/竖线分隔或单一路径
-- 返回多种格式，方便与其他节点对接：
-    - file_paths (STRING): 分号分隔的绝对路径字符串
-    - file_names (STRING): 分号分隔的文件名字符串
-    - file_list (LIST): Python 列表（每项为绝对路径）——可直接连到接受 LIST / PATH 的节点
-    - file_qwen_json (STRING): Qwen 风格的 JSON 字符串，格式为 [{"type":"image","image":"<path>"} , ...]
 """
 
 import os
