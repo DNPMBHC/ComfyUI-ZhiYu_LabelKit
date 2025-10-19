@@ -1,1 +1,4 @@
-# No PyPI dependencies required. Uses Python standard library only.
+numpy>=1.24
+Pillow>=9.0
+pillow-jxl-plugin>=1.2
+torch
