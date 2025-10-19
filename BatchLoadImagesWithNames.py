@@ -16,7 +16,7 @@ import re
 
 # 内联 utils（无需 libs/ 目录）
 def extract_first_number(s):
-    match = re.search(r'\d+', s)
+    match = re.search(r'\d+', str(s))
     return int(match.group()) if match else float('inf')
 
 sort_methods = [
@@ -79,7 +79,7 @@ class BatchLoadImagesWithNames:
 
     RETURN_TYPES = ("IMAGE", "MASK", "STRING", "STRING", "INT")
     RETURN_NAMES = ("IMAGE", "MASK", "FILE PATHS", "FILE NAMES", "COUNT")
-    OUTPUT_IS_LIST = (True, True, True, True, False)
+    OUTPUT_IS_LIST = (False, False, True, True, False)
 
     FUNCTION = "load_images"
     CATEGORY = "ZhiYu/工具箱"
@@ -132,7 +132,8 @@ class BatchLoadImagesWithNames:
                 i = ImageOps.exif_transpose(i)
                 rgb = i.convert("RGB")
                 h, w = rgb.size[1], rgb.size[0]
-                image = torch.from_numpy(np.array(rgb).astype(np.float32) / 255.0)[None,]
+                # 加载为 BHWC (1, H, W, 3), 参考节点稳定方案
+                image = torch.from_numpy(np.array(rgb).astype(np.float32) / 255.0).unsqueeze(0)
                 if 'A' in i.getbands():
                     mask_np = np.array(i.getchannel('A')).astype(np.float32) / 255.0
                     mask = 1. - torch.from_numpy(mask_np)
@@ -155,34 +156,32 @@ class BatchLoadImagesWithNames:
         if image_count == 1:
             return (images[0], masks[0].unsqueeze(0), file_paths, file_names, 1)
 
-        # Batch: images
+        # 统一目标尺寸
+        target_h, target_w = images[0].shape[1], images[0].shape[2]  # BHWC: [1]=H, [2]=W
+
+        # Batch: images (参考节点稳定方案: common_upscale on BHWC)
         image_batch = images[0]
         for img in images[1:]:
-            if image_batch.shape[1:] != img.shape[1:]:
-                img = comfy.utils.common_upscale(img.movedim(-1, 1), image_batch.shape[2], image_batch.shape[1], "bilinear", "center").movedim(1, -1)
+            if img.shape[1:] != image_batch.shape[1:]:
+                img = comfy.utils.common_upscale(img, target_w, target_h, "bilinear", "center")
             image_batch = torch.cat((image_batch, img), 0)
 
-        # Batch: masks (修复部分：统一所有 mask 为 (1, H, W) 3 维)
-        mask_batch = None
+        # Batch: masks (参考节点方案: interpolate on (1,1,H,W), squeeze(0) to (H,W), then stack to (B, H, W))
+        mask_list = []
         for mask in masks:
             if has_non_empty_mask:
-                if image_batch.shape[1:3] != mask.shape:
-                    # 改动1: .squeeze(1) 移除通道维 (C=1)，得到 (1, H_new, W_new)
-                    # 改动2: 无需后续 unsqueeze(0)，因为已为 (1, H, W)
-                    mask = F.interpolate(mask.unsqueeze(0).unsqueeze(0), size=(image_batch.shape[1], image_batch.shape[2]), mode='bilinear', align_corners=False).squeeze(1)
-                else:
-                    # 改动3: 只在 no-resize 时 unsqueeze(0)，得到 (1, H, W)
-                    mask = mask.unsqueeze(0)
+                if (target_h, target_w) != mask.shape:
+                    mask = F.interpolate(mask.unsqueeze(0).unsqueeze(0), size=(target_h, target_w), mode='bilinear', align_corners=False).squeeze(0).squeeze(0)
+                # no resize: mask is (H,W), remain
             else:
-                mask = torch.zeros((1, image_batch.shape[1], image_batch.shape[2]), dtype=torch.float32)
-            if mask_batch is None:
-                mask_batch = mask
-            else:
-                mask_batch = torch.cat((mask_batch, mask), 0)
+                mask = torch.zeros((target_h, target_w), dtype=torch.float32)
+            mask_list.append(mask)
+
+        mask_batch = torch.stack(mask_list, dim=0)  # (B, H, W)
 
         return (image_batch, mask_batch, file_paths, file_names, image_count)
 
     def _empty_output(self):
-        empty_img = torch.zeros((1, 3, 512, 512), dtype=torch.float32)
+        empty_img = torch.zeros((1, 512, 512, 3), dtype=torch.float32)
         empty_mask = torch.zeros((1, 512, 512), dtype=torch.float32)
         return (empty_img, empty_mask, [], [], 0)
