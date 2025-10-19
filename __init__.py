@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+# 导入主类（其他类可选导入）
 from .batch_image_loader import BatchLoadImagesWithNames
 
 NODE_CLASS_MAPPINGS = {
