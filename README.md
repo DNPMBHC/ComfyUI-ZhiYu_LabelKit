@@ -19,17 +19,10 @@
     - `COUNT`：加载图片数量（INT）
   - 参数：`directory`、`image_load_cap`、`start_index`、`load_always`、`sort_method`
 
-- `ZhiYu/工具箱/SaveLabelToTxt`（可选）  
-  - 类名：`SaveLabelToTxtNode`  
-  - 功能：把传入的标签文本写入与图片同目录的同名 `.txt`（支持追加或覆盖），支持传入路径列表或换行字符串。
+## 快速开始（用户指南）
 
----
-
-## 与源码的一致性说明
-- 本 README 已与仓库中实际暴露的节点类名/显示名匹配；若你后来改动类名（或文件名），也请同步更新 `__init__.py` 中的 `NODE_CLASS_MAPPINGS`。  
-- 仓库根目录目前含有：`__init__.py`、`get_image_name.py`、`requirements.txt` 等文件。若要合并或删除旧文件，请把不再使用的脚本归档或重命名，以避免导入冲突。:contentReference[oaicite:1]{index=1}
-
----
-
-## 安装（推荐步骤）
-1. 把仓库克隆到 ComfyUI 的 `custom_nodes` 目录下：  
+### 1. 安装
+1. 把仓库克隆到 ComfyUI 的 custom_nodes 目录：
+```bash
+cd /path/to/ComfyUI/custom_nodes
+git clone https://github.com/DNPMBHC/ComfyUI-ZhiYu_LabelKit.git
