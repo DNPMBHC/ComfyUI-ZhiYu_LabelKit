@@ -1,0 +1,7 @@
+{
+  "name": "ZiYu_LabelKit",
+  "author": "ZiYu",
+  "version": "1.0",
+  "description": "助力批量打标流程的图像加载节点，并获取图片名称",
+  "git": "https://github.com/DNPMBHC/ComfyUI-ZiYu_LabelKit.git"
+}
