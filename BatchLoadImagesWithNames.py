@@ -162,13 +162,17 @@ class BatchLoadImagesWithNames:
                 img = comfy.utils.common_upscale(img.movedim(-1, 1), image_batch.shape[2], image_batch.shape[1], "bilinear", "center").movedim(1, -1)
             image_batch = torch.cat((image_batch, img), 0)
 
-        # Batch: masks
+        # Batch: masks (修复部分：统一所有 mask 为 (1, H, W) 3 维)
         mask_batch = None
         for mask in masks:
             if has_non_empty_mask:
                 if image_batch.shape[1:3] != mask.shape:
-                    mask = F.interpolate(mask.unsqueeze(0).unsqueeze(0), size=(image_batch.shape[1], image_batch.shape[2]), mode='bilinear', align_corners=False).squeeze(0)
-                mask = mask.unsqueeze(0)
+                    # 改动1: .squeeze(1) 移除通道维 (C=1)，得到 (1, H_new, W_new)
+                    # 改动2: 无需后续 unsqueeze(0)，因为已为 (1, H, W)
+                    mask = F.interpolate(mask.unsqueeze(0).unsqueeze(0), size=(image_batch.shape[1], image_batch.shape[2]), mode='bilinear', align_corners=False).squeeze(1)
+                else:
+                    # 改动3: 只在 no-resize 时 unsqueeze(0)，得到 (1, H, W)
+                    mask = mask.unsqueeze(0)
             else:
                 mask = torch.zeros((1, image_batch.shape[1], image_batch.shape[2]), dtype=torch.float32)
             if mask_batch is None:
