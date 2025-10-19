@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .batch_image_loader import BatchLoadImagesWithNames
+from .BatchLoadImagesWithNames import BatchLoadImagesWithNames
 
 NODE_CLASS_MAPPINGS = {
     "BatchLoadImagesWithNames": BatchLoadImagesWithNames,
