@@ -6,7 +6,7 @@
 ---
 
 ## 包内主要节点（当前版本）
-- `ZhiYu/工具箱/BatchLoadImagesWithNames`  
+- `ZhiYu/工具箱/批量加载图片并提取名称`  
   - 类名（内部）：`BatchLoadImagesWithNames`  
   - 显示名（UI）：`批量加载图片并提取名称`  
   - 功能：从指定目录加载图片（支持 `.jpg` `.jpeg` `.png` `.webp`，可选 `.jxl`），输出：
