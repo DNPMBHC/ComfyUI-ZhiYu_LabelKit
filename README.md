@@ -22,4 +22,4 @@
 ### 1. 安装
 1. 把仓库克隆到 ComfyUI 的 custom_nodes 目录：
 ```bash
-git clone https://github.com/DNPMBHC/ComfyUI-ZhiYu_LabelKit.git
+git clone https://github.com/DNPMBHC/ComfyUI-ZiYu_LabelKit.git
