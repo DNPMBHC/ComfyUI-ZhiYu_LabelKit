@@ -1,4 +1,4 @@
-# ComfyUI-ZhiYu_LabelKit
+# ComfyUI-ZiYu_LabelKit
 
 一个面向 ComfyUI 的小型节点包。  
 **功能核心**：从目录批量加载图片并同时提取图片文件名（可直接返回路径列表 / 文件名列表）的工具节点。
@@ -6,7 +6,7 @@
 ---
 
 ## 包内主要节点（当前版本）
-- `ZhiYu/工具箱/批量加载图片并提取名称`  
+- `ZiYu/工具箱/批量加载图片并提取名称`  
   - 类名（内部）：`BatchLoadImagesWithNames`  
   - 显示名（UI）：`批量加载图片并提取名称`  
   - 功能：从指定目录加载图片（支持 `.jpg` `.jpeg` `.png` `.webp`，可选 `.jxl`），输出：
