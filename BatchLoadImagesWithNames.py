@@ -78,8 +78,8 @@ class BatchLoadImagesWithNames:
         }
 
     RETURN_TYPES = ("IMAGE", "MASK", "STRING", "STRING", "INT")
-    RETURN_NAMES = ("IMAGE", "MASK", "FILE PATHS", "FILE NAMES", "COUNT")
-    OUTPUT_IS_LIST = (False, False, True, True, False)
+    RETURN_NAMES = ("IMAGES", "MASKS", "FILE PATHS", "FILE NAMES", "COUNT")
+    OUTPUT_IS_LIST = (True, True, True, True, False)
 
     FUNCTION = "load_images"
     CATEGORY = "ZhiYu/工具箱"
@@ -120,7 +120,6 @@ class BatchLoadImagesWithNames:
         file_names = []
         image_count = 0
         limit_images = image_load_cap > 0
-        has_non_empty_mask = False
 
         for image_path in dir_files:
             if os.path.isdir(image_path):
@@ -137,7 +136,6 @@ class BatchLoadImagesWithNames:
                 if 'A' in i.getbands():
                     mask_np = np.array(i.getchannel('A')).astype(np.float32) / 255.0
                     mask = 1. - torch.from_numpy(mask_np)
-                    has_non_empty_mask = True
                 else:
                     mask = torch.zeros((h, w), dtype=torch.float32)
                 images.append(image)
@@ -152,36 +150,7 @@ class BatchLoadImagesWithNames:
         if image_count == 0:
             return self._empty_output()
 
-        # Single image
-        if image_count == 1:
-            return (images[0], masks[0].unsqueeze(0), file_paths, file_names, 1)
-
-        # 统一目标尺寸
-        target_h, target_w = images[0].shape[1], images[0].shape[2]  # BHWC: [1]=H, [2]=W
-
-        # Batch: images (参考节点稳定方案: common_upscale on BHWC)
-        image_batch = images[0]
-        for img in images[1:]:
-            if img.shape[1:] != image_batch.shape[1:]:
-                img = comfy.utils.common_upscale(img, target_w, target_h, "bilinear", "center")
-            image_batch = torch.cat((image_batch, img), 0)
-
-        # Batch: masks (参考节点方案: interpolate on (1,1,H,W), squeeze(0) to (H,W), then stack to (B, H, W))
-        mask_list = []
-        for mask in masks:
-            if has_non_empty_mask:
-                if (target_h, target_w) != mask.shape:
-                    mask = F.interpolate(mask.unsqueeze(0).unsqueeze(0), size=(target_h, target_w), mode='bilinear', align_corners=False).squeeze(0).squeeze(0)
-                # no resize: mask is (H,W), remain
-            else:
-                mask = torch.zeros((target_h, target_w), dtype=torch.float32)
-            mask_list.append(mask)
-
-        mask_batch = torch.stack(mask_list, dim=0)  # (B, H, W)
-
-        return (image_batch, mask_batch, file_paths, file_names, image_count)
+        return (images, masks, file_paths, file_names, image_count)
 
     def _empty_output(self):
-        empty_img = torch.zeros((1, 512, 512, 3), dtype=torch.float32)
-        empty_mask = torch.zeros((1, 512, 512), dtype=torch.float32)
-        return (empty_img, empty_mask, [], [], 0)
+        return ([], [], [], [], 0)
