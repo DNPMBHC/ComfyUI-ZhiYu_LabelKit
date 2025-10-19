@@ -1,4 +1,4 @@
 numpy>=1.24
 Pillow>=9.0
-pillow_jxl  # 可选，for JXL support
-torch>=1.10  # for concat
+# pillow-jxl-plugin  # Optional: for .jxl image support
+torch>=1.10  # For torch.cat compatibility
