@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from .get_image_name import GetImageNameNode
+from .batch_image_loader import BatchLoadImagesWithNames
 
 NODE_CLASS_MAPPINGS = {
-    "GetImageNameNode": GetImageNameNode,
+    "BatchLoadImagesWithNames": BatchLoadImagesWithNames,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "GetImageNameNode": "获取图片名称",
+    "BatchLoadImagesWithNames": "批量加载图片并提取名称",
 }
